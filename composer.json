@@ -1,0 +1,22 @@
+{
+    "name": "davelip/laravel-database-queue",
+    "description": "",
+    "authors": [
+        {
+            "name": "David Lippi",
+            "email": "lippi.david@gmail.com"
+        }
+    ],
+    "require": {
+        "php": ">=5.3.0",
+        "illuminate/support": "~4.0",
+        "illuminate/console": "~4.0",
+        "symfony/process": "~2.3"
+    },
+    "autoload": {
+        "psr-4": {
+            "Davelip\\Queue\\": "src/"
+        }
+    },
+    "minimum-stability": "dev"
+}
