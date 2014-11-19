@@ -1,7 +1,7 @@
 <?php namespace Davelip\Queue\Connectors;
 
 use Illuminate\Queue\Connectors\ConnectorInterface;
-use Barryvdh\Queue\AsyncQueue;
+use Davelip\Queue\AsyncQueue;
 
 class DatabaseConnector implements ConnectorInterface {
 

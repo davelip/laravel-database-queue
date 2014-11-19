@@ -40,12 +40,12 @@ class DatabaseServiceProvider extends ServiceProvider {
     {
         $app = $this->app;
 
-        $app['command.queue.async'] = $app->share(function($app)
+        $app['command.queue.database'] = $app->share(function($app)
             {
                 return new DatabaseCommand();
             });
 
-        $this->commands('command.queue.async');
+        $this->commands('command.queue.database');
     }
 
     /**
@@ -56,7 +56,7 @@ class DatabaseServiceProvider extends ServiceProvider {
      */
     protected function registerDatabaseConnector($manager)
     {
-        $manager->addConnector('async', function()
+        $manager->addConnector('database', function()
             {
                 return new DatabaseConnector;
             });
@@ -69,7 +69,7 @@ class DatabaseServiceProvider extends ServiceProvider {
 	 */
 	public function provides()
 	{
-		return array('command.queue.async');
+		return array('command.queue.database');
 	}
 
 }

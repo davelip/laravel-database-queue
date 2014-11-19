@@ -15,13 +15,13 @@ Add the Service Provider to the providers array in config/app.php
     
 I suggest to publish migrations, so they are copied to your regular migrations
 
-    $ php artisan migrate:publish barryvdh/laravel-async-queue
+    $ php artisan migrate:publish davelip/laravel-database-queue
 
 And then run migrate 
 
     $ php artisan migrate 
 
-You should now be able to use the async driver in config/queue.php
+You should now be able to use the database driver in config/queue.php
 
     'default' => 'database',
     
