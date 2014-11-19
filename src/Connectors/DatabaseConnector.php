@@ -1,7 +1,7 @@
 <?php namespace Davelip\Queue\Connectors;
 
 use Illuminate\Queue\Connectors\ConnectorInterface;
-use Davelip\Queue\AsyncQueue;
+use Davelip\Queue\DatabaseQueue;
 
 class DatabaseConnector implements ConnectorInterface {
 
@@ -13,7 +13,7 @@ class DatabaseConnector implements ConnectorInterface {
      */
     public function connect(array $config)
     {
-        return new DatabaseQueue;
+        return new DatabaseQueue($config['queue']);
     }
 
 }

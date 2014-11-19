@@ -3,9 +3,29 @@
 use Illuminate\Queue\Queue;
 use Illuminate\Queue\QueueInterface;
 use Symfony\Component\Process\Process;
+use Davelip\Queue\Jobs\DatabaseJob;
 use Davelip\Queue\Models\Job;
 
 class DatabaseQueue extends Queue implements QueueInterface {
+
+	/**
+	 * The name of the default tube.
+	 *
+	 * @var string
+	 */
+	protected $default;
+
+	/**
+	 * Create a new database queue instance
+	 *
+	 * @param  string  $default
+	 * @return void
+	 */
+	public function __construct($default)
+	{
+		$this->default = $default;
+	}
+
 
     /**
      * Push a new job onto the queue.
@@ -23,7 +43,7 @@ class DatabaseQueue extends Queue implements QueueInterface {
 
     /**
      * Store the job in the database
-     * 
+     *
      * @param  string  $job			job
      * @param  mixed   $data 		payload of job
      * @param  string  $queue		queue name
@@ -37,7 +57,7 @@ class DatabaseQueue extends Queue implements QueueInterface {
         $job = new Job;
         $job->queue = ($queue ? $queue : $this->default);
         $job->status = Job::STATUS_OPEN;
-        $job->timestamp = ($timestamp!=0?$timestamp:time());
+        $job->timestamp = date('Y-m-d H:i:s', ($timestamp!=0?$timestamp:time()));
         $job->payload = $payload;
         $job->save();
 
@@ -66,20 +86,20 @@ class DatabaseQueue extends Queue implements QueueInterface {
      * @param  string  $queue 	queue name
      * @return \Illuminate\Queue\Jobs\Job|null
      */
-	public function pop($queue = null) 
+	public function pop($queue = null)
 	{
 		$queue = $queue ? $queue : $this->default;
 
-		$job = Job::where('timestamp', '>', time())
+		$job = Job::where('timestamp', '<', date('Y-m-d H:i:s', time()))
 			->where('queue', '=', $queue)
 			->where('status', '=', Job::STATUS_OPEN)
 			->orWhere('status', '=', Job::STATUS_WAITING)
-			->take(1)
-			->get();
+			->first()
+			;
 
 		if ( ! is_null($job))
 		{
-			return $job;
+			return new DatabaseJob($this->container, $job);
 		}
 	}
 
@@ -94,6 +114,6 @@ class DatabaseQueue extends Queue implements QueueInterface {
      */
     public function pushRaw($payload, $queue = null, array $options = array())
     {
-        // 
+        //
     }
 }
