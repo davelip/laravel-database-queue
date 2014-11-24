@@ -1,6 +1,6 @@
 # Laravel 4 Database Queue Driver
-## Push a function/closure to the Database queue.
 
+## Push a function/closure to the Database queue.
 This is a real queue driver, like beanstalkd or redis one.
 You need a daemon like supervisor or similar to listen to your queue.
 
@@ -35,4 +35,13 @@ You should now be able to use the database driver in config/queue.php
 
 It work in the same as beanstalkd or redis queue listener.
 
+Listen for new job:
+
+    $ php artisan queue:listen
+
+
+### Laravel Queue System
 For more info see http://laravel.com/docs/queues
+
+#### Thanks
+Loosely based on https://github.com/barryvdh/laravel-async-queue
