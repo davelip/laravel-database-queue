@@ -1,6 +1,7 @@
 {
     "name": "davelip/laravel-database-queue",
     "description": "",
+    "license": "MIT",
     "authors": [
         {
             "name": "David Lippi",
