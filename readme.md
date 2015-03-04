@@ -29,7 +29,7 @@ You should now be able to use the database driver in config/queue.php
         ...
         'database' => array(
             'driver' => 'database',
-            'queue' => 'queue-name',
+            'queue' => 'queue-name', // optional, can be null or any string
         ),
         ...
     }

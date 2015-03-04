@@ -13,7 +13,7 @@ class DatabaseConnector implements ConnectorInterface {
      */
     public function connect(array $config)
     {
-        return new DatabaseQueue($config['queue']);
+        return new DatabaseQueue(array_get($config, 'queue'));
     }
 
 }
