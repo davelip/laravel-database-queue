@@ -94,6 +94,7 @@ class DatabaseQueue extends Queue implements QueueInterface {
 			->where('queue', '=', $queue)
 			->where('status', '=', Job::STATUS_OPEN)
 			->orWhere('status', '=', Job::STATUS_WAITING)
+			->orderBy('id')
 			->first()
 			;
 
