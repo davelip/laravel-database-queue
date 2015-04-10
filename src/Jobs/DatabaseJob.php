@@ -103,4 +103,15 @@ class DatabaseJob extends SyncJob
 	{
 		return $this->name;
 	}
+
+
+	/**
+	 * Get the job identifier.
+	 *
+	 * @return string
+	 */
+	public function getJobId()
+	{
+		return $this->job->getKey();
+	}
 }
