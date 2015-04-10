@@ -1,9 +1,10 @@
 <?php namespace Davelip\Queue\Jobs;
 
+use Carbon\Carbon;
 use Davelip\Queue\Models\Job;
 use Illuminate\Container\Container;
 
-class DatabaseJob extends Illuminate\Queue\Jobs\Job
+class DatabaseJob extends \Illuminate\Queue\Jobs\Job
 {
 	/**
 	 * The job model
@@ -18,6 +19,13 @@ class DatabaseJob extends Illuminate\Queue\Jobs\Job
 	 * @var string
 	 */
 	protected $name;
+
+	/**
+	 * True if the job was released back onto the Queue
+	 *
+	 * @var bool
+	 */
+	protected $released;
 
 	/**
 	 * Create a new job instance.
@@ -49,8 +57,13 @@ class DatabaseJob extends Illuminate\Queue\Jobs\Job
 		// Fire the actual job
 		$this->resolveAndFire($payload);
 
-		// If job is not deleted, mark as finished
-		if ( ! $this->deleted) {
+
+		/*
+		 * As per l5 the documentation states that a job which has not thrown any exception by the time it finishes will
+		 * be deleted.
+		 */
+		// If job is not deleted, and was not released back onto the queue, mark as finished
+		if ( ! $this->deleted && !$this->released ) {
 			$this->job->status = Job::STATUS_FINISHED;
 			$this->job->save();
 		}
@@ -77,9 +90,11 @@ class DatabaseJob extends Illuminate\Queue\Jobs\Job
 	{
 		$now = new Carbon();
 		$now->addSeconds($delay);
-		$this->job->timestamp = $now->timestamp;
+		$this->job->timestamp = $now->toIso8601String();
 		$this->job->status = Job::STATUS_WAITING;
+		$this->job->retries += 1;
 		$this->job->save();
+		$this->released = true;
 	}
 
 	/**
@@ -122,4 +137,15 @@ class DatabaseJob extends Illuminate\Queue\Jobs\Job
 	{
 		return $this->job->getKey();
 	}
+
+	/**
+	 * Get the raw body string for the job.
+	 *
+	 * @return string
+	 */
+	public function getRawBody() {
+		// TODO: Find out what this needs to return
+	}
+
+
 }
