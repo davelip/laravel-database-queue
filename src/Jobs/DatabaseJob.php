@@ -1,10 +1,9 @@
 <?php namespace Davelip\Queue\Jobs;
 
 use Davelip\Queue\Models\Job;
-use Illuminate\Queue\Jobs\SyncJob;
 use Illuminate\Container\Container;
 
-class DatabaseJob extends SyncJob
+class DatabaseJob extends Illuminate\Queue\Jobs\Job
 {
 	/**
 	 * The job model
@@ -68,7 +67,7 @@ class DatabaseJob extends SyncJob
 		$this->job->delete();
 	}
 
-	/*
+	/**
 	 * Release the job back into the queue.
 	 *
 	 * @param  int   $delay
@@ -76,10 +75,11 @@ class DatabaseJob extends SyncJob
 	 */
 	public function release($delay = 0)
 	{
+		$now = new Carbon();
+		$now->addSeconds($delay);
+		$this->job->timestamp = $now->timestamp;
 		$this->job->status = Job::STATUS_WAITING;
 		$this->job->save();
-
-		$this->delete();
 	}
 
 	/**
@@ -104,6 +104,14 @@ class DatabaseJob extends SyncJob
 		return $this->name;
 	}
 
+	/**
+	 * Get the number of attempts this task has been done
+	 *
+	 * @return int
+	 */
+	public function attempts() {
+		return ($this->job->retries + 1);
+	}
 
 	/**
 	 * Get the job identifier.
