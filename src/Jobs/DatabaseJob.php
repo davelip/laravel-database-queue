@@ -144,7 +144,9 @@ class DatabaseJob extends \Illuminate\Queue\Jobs\Job
 	 * @return string
 	 */
 	public function getRawBody() {
-		// TODO: Find out what this needs to return
+		// FIXME: This is a best guess, other implementations are used like this:  $this->resolveAndFire(json_decode($this->getRawBody(), true));
+
+		return $this->job->payload;
 	}
 
 
