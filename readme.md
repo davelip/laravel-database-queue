@@ -7,7 +7,7 @@ You need a daemon like supervisor or similar to listen to your queue.
 ### Install
 Add the package to the require section of your composer.json and run `composer update`
 
-    "davelip/laravel-database-queue": "0.3.*"
+    "davelip/laravel-database-queue": "0.4.*"
 
 Add the Service Provider to the providers array in config/app.php
 
