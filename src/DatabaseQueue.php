@@ -1,5 +1,6 @@
 <?php namespace Davelip\Queue;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Queue\Queue;
 use Illuminate\Queue\QueueInterface;
 use Symfony\Component\Process\Process;
@@ -92,8 +93,10 @@ class DatabaseQueue extends Queue implements QueueInterface {
 
 		$job = Job::where('timestamp', '<', date('Y-m-d H:i:s', time()))
 			->where('queue', '=', $queue)
-			->where('status', '=', Job::STATUS_OPEN)
-			->orWhere('status', '=', Job::STATUS_WAITING)
+			->where(function(Builder $query) {
+				$query->where('status', '=', Job::STATUS_OPEN);
+				$query->orWhere('status', '=', Job::STATUS_WAITING);
+			})
 			->orderBy('id')
 			->first()
 			;

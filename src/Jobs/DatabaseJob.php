@@ -1,10 +1,10 @@
 <?php namespace Davelip\Queue\Jobs;
 
+use Carbon\Carbon;
 use Davelip\Queue\Models\Job;
-use Illuminate\Queue\Jobs\SyncJob;
 use Illuminate\Container\Container;
 
-class DatabaseJob extends SyncJob
+class DatabaseJob extends \Illuminate\Queue\Jobs\Job
 {
 	/**
 	 * The job model
@@ -19,6 +19,13 @@ class DatabaseJob extends SyncJob
 	 * @var string
 	 */
 	protected $name;
+
+	/**
+	 * True if the job was released back onto the Queue
+	 *
+	 * @var bool
+	 */
+	protected $released;
 
 	/**
 	 * Create a new job instance.
@@ -50,8 +57,13 @@ class DatabaseJob extends SyncJob
 		// Fire the actual job
 		$this->resolveAndFire($payload);
 
-		// If job is not deleted, mark as finished
-		if ( ! $this->deleted) {
+
+		/*
+		 * As per l5 the documentation states that a job which has not thrown any exception by the time it finishes will
+		 * be deleted.
+		 */
+		// If job is not deleted, and was not released back onto the queue, mark as finished
+		if ( ! $this->deleted && !$this->released ) {
 			$this->job->status = Job::STATUS_FINISHED;
 			$this->job->save();
 		}
@@ -68,7 +80,7 @@ class DatabaseJob extends SyncJob
 		$this->job->delete();
 	}
 
-	/*
+	/**
 	 * Release the job back into the queue.
 	 *
 	 * @param  int   $delay
@@ -76,10 +88,13 @@ class DatabaseJob extends SyncJob
 	 */
 	public function release($delay = 0)
 	{
+		$now = new Carbon();
+		$now->addSeconds($delay);
+		$this->job->timestamp = $now->toIso8601String();
 		$this->job->status = Job::STATUS_WAITING;
+		$this->job->retries += 1;
 		$this->job->save();
-
-		$this->delete();
+		$this->released = true;
 	}
 
 	/**
@@ -103,4 +118,36 @@ class DatabaseJob extends SyncJob
 	{
 		return $this->name;
 	}
+
+	/**
+	 * Get the number of attempts this task has been done
+	 *
+	 * @return int
+	 */
+	public function attempts() {
+		return ($this->job->retries + 1);
+	}
+
+	/**
+	 * Get the job identifier.
+	 *
+	 * @return string
+	 */
+	public function getJobId()
+	{
+		return $this->job->getKey();
+	}
+
+	/**
+	 * Get the raw body string for the job.
+	 *
+	 * @return string
+	 */
+	public function getRawBody() {
+		// FIXME: This is a best guess, other implementations are used like this:  $this->resolveAndFire(json_decode($this->getRawBody(), true));
+
+		return $this->job->payload;
+	}
+
+
 }
