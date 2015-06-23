@@ -58,7 +58,7 @@ class DatabaseServiceProvider extends ServiceProvider
     protected function registerDatabaseConnector($manager)
     {
         $manager->addConnector('database', function () {
-                return new DatabaseConnector();
+                return new DatabaseConnector($this->app['db']);
             });
     }
 

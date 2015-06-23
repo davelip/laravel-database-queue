@@ -1,5 +1,8 @@
 <?php namespace Davelip\Queue;
 
+use DateTime;
+use Carbon\Carbon;
+use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Queue\Queue;
 use Illuminate\Queue\QueueInterface;
@@ -8,23 +11,49 @@ use Davelip\Queue\Models\Job;
 
 class DatabaseQueue extends Queue implements QueueInterface
 {
+    /**
+    * The database connection instance.
+    *
+     * @var \Illuminate\Database\Connection
+     */
+    protected $database;
 
     /**
-     * The name of the default tube.
+     * The database table that holds the jobs.
+     *
+     * @var string
+     */
+    protected $table;
+
+    /**
+     * The name of the default queue.
      *
      * @var string
      */
     protected $default;
 
     /**
-     * Create a new database queue instance
+     * The expiration time of a job.
      *
-     * @param  string $default
+     * @var int|null
+     */
+    protected $expire = 60;
+
+    /**
+     * Create a new database queue instance.
+     *
+     * @param  \Illuminate\Database\Connection  $database
+     * @param  string  $table
+     * @param  string  $default
+     * @param  int  $expire
      * @return void
      */
-    public function __construct($default)
+    public function __construct(Connection $database, $table, $default = 'default', $expire = 60)
     {
+        $this->table = $table;
+        $this->expire = $expire;
         $this->default = $default;
+        $this->database = $database;
     }
 
     /**
@@ -103,7 +132,7 @@ class DatabaseQueue extends Queue implements QueueInterface
             ;
 
         if (! is_null($job)) {
-            return new DatabaseJob($this->container, $job);
+            return new DatabaseJob($this->container, $job, $queue);
         }
     }
 
@@ -117,6 +146,39 @@ class DatabaseQueue extends Queue implements QueueInterface
      */
     public function pushRaw($payload, $queue = null, array $options = array())
     {
-        //
+        return $this->pushToDatabase(0, $queue, $payload);
+    }
+
+    /**
+     * Push a raw payload to the database with a given delay.
+     *
+     * @param  \DateTime|int  $delay
+     * @param  string|null  $queue
+     * @param  string  $payload
+     * @param  int  $attempts
+     * @return mixed
+     */
+    protected function pushToDatabase($delay, $queue, $payload, $attempts = 0)
+    {
+        $availableAt = $delay instanceof DateTime ? $delay : Carbon::now()->addSeconds($delay);
+
+        return $this->database->table($this->table)->insertGetId([
+            'queue' => $this->getQueue($queue),
+            'payload' => $payload,
+            'retries' => $attempts,
+            'timestamp' => $availableAt->getTimestamp(),
+            'created_at' => $this->getTime(),
+        ]);
+    }
+
+    /**
+     * Get the queue or return the default.
+     *
+     * @param  string|null  $queue
+     * @return string
+     */
+    protected function getQueue($queue)
+    {
+        return $queue ?: $this->default;
     }
 }

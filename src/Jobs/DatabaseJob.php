@@ -33,9 +33,10 @@ class DatabaseJob extends \Illuminate\Queue\Jobs\Job
      * @param \Illuminate\Container\Container $container
      * @param \Davelip\Queue\Models\Job       $job
      */
-    public function __construct(Container $container, Job $job)
+    public function __construct(Container $container, Job $job, $queue)
     {
         $this->job = $job;
+        $this->queue = $queue;
         $this->container = $container;
     }
 
