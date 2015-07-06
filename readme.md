@@ -11,8 +11,8 @@ Add the package to the require section of your composer.json and run `composer u
 
 Add the Service Provider to the providers array in config/app.php
 
-    'Davelip\Queue\DatabaseServiceProvider',
-    
+    'Davelip\Queue\DatabaseServiceProvider'
+
 I suggest to publish migrations, so they are copied to your regular migrations
 
     $ php artisan migrate:publish davelip/laravel-database-queue
@@ -20,6 +20,10 @@ I suggest to publish migrations, so they are copied to your regular migrations
 And then run migrate 
 
     $ php artisan migrate 
+
+(thank's to @tholu) I suggest to create the `failed_jobs` table, in this moment, with:
+
+    $ php artisan queue:failed-table
 
 You should now be able to use the database driver in config/queue.php
 
@@ -39,6 +43,9 @@ It work in the same as beanstalkd or redis queue listener.
 Listen for new job:
 
     $ php artisan queue:listen
+
+
+Concurrency are managed by `status` column in the `queues` table, so you can parallelize your `queue:listen`.
 
 
 ### Laravel Queue System
