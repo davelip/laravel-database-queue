@@ -6,14 +6,23 @@ use Illuminate\Database\Connection;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Queue\Queue;
 use Illuminate\Queue\QueueInterface;
+use Illuminate\Support\Facades\DB;
 use Davelip\Queue\Jobs\DatabaseJob;
 use Davelip\Queue\Models\Job;
 
 class DatabaseQueue extends Queue implements QueueInterface
 {
     /**
-    * The database connection instance.
-    *
+     * Lock type
+     * @see http://laravel.com/docs/4.2/queries#pessimistic-locking
+     */
+    const LOCK_TYPE_NONE = 0;
+    const LOCK_TYPE_SHARED = 1;
+    const LOCK_TYPE_FOR_UPDATE = 2;
+
+    /**
+     * The database connection instance.
+     *
      * @var \Illuminate\Database\Connection
      */
     protected $database;
@@ -40,6 +49,14 @@ class DatabaseQueue extends Queue implements QueueInterface
     protected $expire = 60;
 
     /**
+     * Lock type
+     * @see http://laravel.com/docs/4.2/queries#pessimistic-locking
+     *
+     * @var int
+     */
+    protected $lock_type = self::LOCK_TYPE_NONE;
+
+    /**
      * Create a new database queue instance.
      *
      * @param  \Illuminate\Database\Connection  $database
@@ -48,12 +65,17 @@ class DatabaseQueue extends Queue implements QueueInterface
      * @param  int  $expire
      * @return void
      */
-    public function __construct(Connection $database, $table, $default = 'default', $expire = 60)
+    public function __construct(Connection $database, $table
+        , $default = 'default'
+        , $expire = 60
+        , $lock_type = self::LOCK_TYPE_NONE
+        )
     {
         $this->table = $table;
         $this->expire = $expire;
         $this->default = $default;
         $this->database = $database;
+        $this->lock_type = $lock_type;
     }
 
     /**
@@ -121,18 +143,34 @@ class DatabaseQueue extends Queue implements QueueInterface
     {
         $queue = $queue ? $queue : $this->default;
 
-        $job = Job::where('timestamp', '<', date('Y-m-d H:i:s', time()))
+        DB::beginTransaction();
+        $query = Job::where('timestamp', '<', date('Y-m-d H:i:s', time()))
             ->where('queue', '=', $queue)
             ->where(function (Builder $query) {
                 $query->where('status', '=', Job::STATUS_OPEN);
                 $query->orWhere('status', '=', Job::STATUS_WAITING);
             })
             ->orderBy('id')
-            ->first()
             ;
+        // If requested set pessimistic lock
+        if ($this->lock_type==self::LOCK_TYPE_SHARED) {
+            $query->sharedLock();
+        } elseif ($this->lock_type==self::LOCK_TYPE_FOR_UPDATE) {
+            $query->lockForUpdate();
+        }
+        $job = $query->first();
 
         if (! is_null($job)) {
-            return new DatabaseJob($this->container, $job, $queue);
+            // Mark job as started
+            $job->status = Job::STATUS_STARTED;
+            $job->save();
+            DB::commit();
+            $dbJob = new DatabaseJob($this->container, $job, $queue);
+            return $dbJob;
+        }
+        else {
+            DB::rollback();
+            return null;
         }
     }
 
