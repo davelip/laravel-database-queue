@@ -51,10 +51,6 @@ class DatabaseJob extends \Illuminate\Queue\Jobs\Job
         $payload = $this->parsePayload($this->job->payload);
         $this->name = $payload['job'];
 
-        // Mark job as started
-        $this->job->status = Job::STATUS_STARTED;
-        $this->job->save();
-
         // Fire the actual job
         $this->resolveAndFire($payload);
 

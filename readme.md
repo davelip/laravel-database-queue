@@ -21,7 +21,7 @@ And then run migrate
 
     $ php artisan migrate 
 
-(thank's to @tholu) I suggest to create the `failed_jobs` table, in this moment, with:
+I suggest to create the `failed_jobs` table, in this moment, with:
 
     $ php artisan queue:failed-table
 
@@ -34,6 +34,7 @@ You should now be able to use the database driver in config/queue.php
         'database' => array(
             'driver' => 'database',
             'queue' => 'queue-name', // optional, can be null or any string
+            'lock_type' => 0, // optional, can be 0, 1 or 2
         ),
         ...
     }
@@ -46,6 +47,14 @@ Listen for new job:
 
 
 Concurrency are managed by `status` column in the `queues` table, so you can parallelize your `queue:listen`.
+
+Atomicity of status change are garantee by database transaction, if you are having problems of race condition 
+can You set the option `lock_type` to:
+
+ * 'lock_type' => 1 // queue system will use sharedLock 
+ * 'lock_type' => 2 // queue system will use lockForUpdate 
+
+see http://laravel.com/docs/4.2/queries#pessimistic-locking for further info.
 
 
 ### Laravel Queue System
