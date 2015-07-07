@@ -36,7 +36,7 @@ class DatabaseConnector implements ConnectorInterface
             $this->connections->connection(array_get($config, 'connection')),
             array_get($config, 'table', 'queues'),
             array_get($config, 'queue', null),
-            array_get($config, 'expire', 60)
+            array_get($config, 'expire', 60),
             array_get($config, 'lock_type', 60)
         );
     }
