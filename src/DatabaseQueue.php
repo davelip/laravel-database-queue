@@ -21,6 +21,11 @@ class DatabaseQueue extends Queue implements QueueInterface
     const LOCK_TYPE_FOR_UPDATE = 2;
 
     /**
+     * Default queue name
+     */
+    const QUEUE_DEFAULT = 'default';
+
+    /**
      * The database connection instance.
      *
      * @var \Illuminate\Database\Connection
@@ -66,7 +71,7 @@ class DatabaseQueue extends Queue implements QueueInterface
      * @return void
      */
     public function __construct(Connection $database, $table
-        , $default = 'default'
+        , $default = self::QUEUE_DEFAULT
         , $expire = 60
         , $lock_type = self::LOCK_TYPE_NONE
         )

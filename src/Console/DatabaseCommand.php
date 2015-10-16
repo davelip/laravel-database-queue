@@ -4,6 +4,7 @@ use Davelip\Queue\Models\Job;
 use Illuminate\Console\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Davelip\Queue\Jobs\DatabaseJob;
+use Davelip\Queue\DatabaseQueue;
 
 class DatabaseCommand extends Command
 {
@@ -38,11 +39,14 @@ class DatabaseCommand extends Command
      */
     public function fire()
     {
-        $item = Job::findOrFail($this->argument('job_id'));
+        $queue = $this->argument('queue');
+        $item = Job::find($this->argument('job_id'));
 
-        $job = new DatabaseJob($this->laravel, $item);
+        if (! empty($item)) {
+            $job = new DatabaseJob($this->laravel, $item, $queue);
 
-        $job->fire();
+            $job->fire();
+        }
     }
 
     /**
@@ -54,6 +58,7 @@ class DatabaseCommand extends Command
     {
         return array(
             array('job_id', InputArgument::REQUIRED, 'The Job ID'),
+            array('queue', InputArgument::OPTIONAL, DatabaseQueue::QUEUE_DEFAULT),
         );
     }
 }
