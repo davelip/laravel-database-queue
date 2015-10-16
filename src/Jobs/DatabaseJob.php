@@ -87,7 +87,7 @@ class DatabaseJob extends \Illuminate\Queue\Jobs\Job
     {
         $now = new Carbon();
         $now->addSeconds($delay);
-        $this->job->timestamp = $now->timestamp;
+        $this->job->timestamp = $now->toDateTimeString();
         $this->job->status = Job::STATUS_WAITING;
         $this->job->retries += 1;
         $this->job->save();
