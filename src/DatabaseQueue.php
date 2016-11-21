@@ -209,8 +209,9 @@ class DatabaseQueue extends Queue implements QueueInterface
             'queue' => $this->getQueue($queue),
             'payload' => $payload,
             'retries' => $attempts,
-            'timestamp' => $availableAt->getTimestamp(),
-            'created_at' => $this->getTime(),
+            'timestamp' => date('Y-m-d H:i:s',$availableAt->getTimestamp()),
+            'created_at' => date('Y-m-d H:i:s',$this->getTime()) ,
+            'updated_at' => date('Y-m-d H:i:s',$this->getTime()),
         ]);
     }
 
