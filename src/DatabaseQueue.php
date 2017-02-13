@@ -148,8 +148,10 @@ class DatabaseQueue extends Queue implements QueueInterface
     {
         $queue = $queue ? $queue : $this->default;
 
-        DB::beginTransaction();
-        $query = Job::where('timestamp', '<', date('Y-m-d H:i:s', time()))
+        $this->database->beginTransaction();
+
+        $query = Job::on($this->database->getName() )
+            ->where('timestamp', '<', date('Y-m-d H:i:s', time()))
             ->where('queue', '=', $queue)
             ->where(function (Builder $query) {
                 $query->where('status', '=', Job::STATUS_OPEN);
@@ -169,12 +171,13 @@ class DatabaseQueue extends Queue implements QueueInterface
             // Mark job as started
             $job->status = Job::STATUS_STARTED;
             $job->save();
-            DB::commit();
+
+            $this->database->commit();
             $dbJob = new DatabaseJob($this->container, $job, $queue);
             return $dbJob;
         }
         else {
-            DB::rollback();
+            $this->database->rollBack();
             return null;
         }
     }
