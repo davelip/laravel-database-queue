@@ -112,6 +112,7 @@ class DatabaseQueue extends Queue implements QueueInterface
         $payload = $this->createPayload($job, $data);
 
         $job = new Job();
+        $job->setConnection($this->database->getName());
         $job->queue = ($queue ? $queue : $this->default);
         $job->status = Job::STATUS_OPEN;
         $job->timestamp = date('Y-m-d H:i:s', ($timestamp != 0 ? $timestamp : time()));
