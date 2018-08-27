@@ -2,6 +2,7 @@
     "name": "davelip/laravel-database-queue",
     "description": "",
     "license": "MIT",
+    "homepage": "https://github.com/davelip/laravel-database-queue.git",
     "authors": [
         {
             "name": "David Lippi",
